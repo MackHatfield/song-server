@@ -6,55 +6,13 @@ const _ = require('lodash');
 
 AWS.config.update({region: 'us-east-1'});
 
-// const dynamodb = new AWS.DynamoDB();
 const s3 = new AWS.S3();
 
 const bucketName = 'songuploaderbucket2983902'
 
-app.get('/', (req, res) => res.send('Fake Spotify Like App'));
+app.get('/', (_, res) => res.send('Fake Spotify Like App'));
 
-// app.get('/artists', (req, res) => {
-//   const params = {
-//     ExpressionAttributeNames: {
-//       "#AN": "ArtistName"
-//     },
-//     ProjectionExpression: "#AN",
-//     TableName: "MusicTable"
-//   };
-
-//   dynamodb.scan(params, (err, data) => {
-//     if (err) {
-//       console.log(err, err.stack);
-//     } else {
-//       res.send(data);
-//     }
-//   });
-// });
-
-// app.get('/genres', (req, res) => {
-//   const params = {
-//     ExpressionAttributeNames: {
-//       "#G": "Genre"
-//     },
-//     ProjectionExpression: "#G",
-//     TableName: "MusicTable"
-//   };
-
-//   dynamodb.scan(params, (err, data) => {
-//     if (err) {
-//       console.log(err, err.stack);
-//     } else {
-//       res.send(data);
-//     }
-//   });
-// });
-
-// app.get('/songs', (req, res) => {
-//   const { song } = req.query
-//   res.send(song);
-// })
-
-app.get('/artists', (req, res) => {
+app.get('/artists', (_, res) => {
   const params = {
     Bucket: bucketName
   };
@@ -121,8 +79,12 @@ app.get('/song', async (req, res) => {
     Key: songTitle
   }
 
-  let url = await s3.getSignedUrlPromise('getObject', params);
-  console.log(url)
-})
+  try {
+    let url = await s3.getSignedUrlPromise('getObject', params);
+    res.send(url);
+  } catch(err) {
+    console.log(err, err.stack);
+  }
+});
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
