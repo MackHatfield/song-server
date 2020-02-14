@@ -1,6 +1,7 @@
-const express = require('express')
-const app = express()
-const port = 3000
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const port = 9000
 const AWS = require('aws-sdk');
 const _ = require('lodash');
 
@@ -9,6 +10,8 @@ AWS.config.update({region: 'us-east-1'});
 const s3 = new AWS.S3();
 
 const bucketName = 'songuploaderbucket2983902'
+
+app.use(cors());
 
 app.get('/', (_, res) => res.send('Fake Spotify Like App'));
 
@@ -73,11 +76,12 @@ app.get('/songs', (req, res) => {
 });
 
 app.get('/song', async (req, res) => {
-  const { songTitle } = req.query;
+  const { songTitle, album, artist} = req.query;
   const params = {
     Bucket: bucketName,
-    Key: songTitle
+    Key: `Artists/${artist}/${album}/${songTitle}`
   }
+  console.log(params.Key);
 
   try {
     let url = await s3.getSignedUrlPromise('getObject', params);
@@ -86,5 +90,22 @@ app.get('/song', async (req, res) => {
     console.log(err, err.stack);
   }
 });
+
+// app.get('/song', async (req, res) => {
+//   const { songTitle } = req.query;
+//   console.log(songTitle)
+//   const params = {
+//     Bucket: bucketName,
+//     Key: songTitle
+//   }
+
+//   s3.getObject(params, (err, data) => {
+//     if (err) {
+//       console.log(err, err.stack);
+//     } else {
+//       console.log(data);
+//     }
+//   })
+// });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
