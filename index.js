@@ -13,9 +13,9 @@ const bucketName = 'songuploaderbucket2983902'
 
 app.use(cors());
 
-app.get('/', (_, res) => res.send('Fake Spotify Like App'));
+app.get('/', (req, res) => res.send('Fake Spotify Like App'));
 
-app.get('/artists', (_, res) => {
+app.get('/artists', (req, res) => {
   const params = {
     Bucket: bucketName
   };
@@ -77,11 +77,11 @@ app.get('/songs', (req, res) => {
 
 app.get('/song', async (req, res) => {
   const { songTitle, album, artist} = req.query;
+  console.log(req.query)
   const params = {
     Bucket: bucketName,
     Key: `Artists/${artist}/${album}/${songTitle}`
   }
-  console.log(params.Key);
 
   try {
     let url = await s3.getSignedUrlPromise('getObject', params);
@@ -91,21 +91,4 @@ app.get('/song', async (req, res) => {
   }
 });
 
-// app.get('/song', async (req, res) => {
-//   const { songTitle } = req.query;
-//   console.log(songTitle)
-//   const params = {
-//     Bucket: bucketName,
-//     Key: songTitle
-//   }
-
-//   s3.getObject(params, (err, data) => {
-//     if (err) {
-//       console.log(err, err.stack);
-//     } else {
-//       console.log(data);
-//     }
-//   })
-// });
-
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.listen(port, () => console.log(`Music server listening on port ${port}!`));
