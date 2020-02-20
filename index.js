@@ -34,62 +34,6 @@ app.get('/artists', (req, res) => {
   });
 });
 
-// app.get('/albums', (req, res) => {
-//   const { artist } = req.query;
-//   const params = {
-//     Bucket: bucketName,
-//     Prefix: `Artists/${artist}`
-//   };
-
-//   s3.listObjects(params, (err, data) => {
-//     if (err) console.log(err, err.stack);
-//     else {
-//       const itemList = data.Contents;
-
-//       const artistAlbums = itemList.map(item => {
-//         return item.Key.split('/')[2]
-//       });
-//       res.send(_.uniq(artistAlbums));
-//     }
-//   });
-// });
-
-// app.get('/songs', (req, res) => {
-//   const { artist, album } = req.query;
-//   const params = {
-//     Bucket: bucketName,
-//     Prefix: `Artists/${artist}/${album}`
-//   };
-
-//   s3.listObjects(params, (err, data) => {
-//     if (err) {
-//       console.log(err, err.stack);
-//     } else {
-//       const itemList = data.Contents;
-
-//       const albumSongs = itemList.map(item => {
-//         return item.Key.split('/')[3]
-//       });
-//       res.send(_.uniq(albumSongs));
-//     }
-//   });
-// });
-
-// app.get('/song', async (req, res) => {
-//   const { songTitle, album, artist} = req.query;
-//   console.log(req.query)
-//   const params = {
-//     Bucket: bucketName,
-//     Key: `Artists/${artist}/${album}/${songTitle}`
-//   }
-
-//   try {
-//     let url = await s3.getSignedUrlPromise('getObject', params);
-//     res.send(url);
-//   } catch(err) {
-//     console.log(err, err.stack);
-//   }
-// });
 
 app.get('/genres', (req, res) => {
   const dbParams = {
@@ -174,5 +118,58 @@ app.get('/songs/for/album', (req, res) => {
     }
   });
 })
+
+// app.get('/song', async (req, res) => {
+//   const { songTitle, album, artist} = req.query;
+//   console.log(req.query)
+//   const params = {
+//     Bucket: bucketName,
+//     Key: `Artists/${artist}/${album}/${songTitle}`
+//   }
+
+//   try {
+//     let url = await s3.getSignedUrlPromise('getObject', params);
+//     res.send(url);
+//   } catch(err) {
+//     console.log(err, err.stack);
+//   }
+// });
+
+app.get('/song', (req, res) => {
+  const { song } = req.query;
+
+  const dbParams = {
+    TableName: 'MusicTable',
+    KeyConditionExpression: 'SongTitle = :hkey',
+    ExpressionAttributeValues: {
+      ':hkey': song
+    }
+  };
+
+  documentClient.query(dbParams, async (err, data) => {
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      if (data.Items.length > 0) {
+        let fields = data.Items[0];
+        let { AlbumTitle, ArtistName, Genre, SongTitle } = fields;
+  
+        let bucketParams = {
+          Bucket: bucketName,
+          Key: `${Genre}/${ArtistName}/${AlbumTitle}/${SongTitle}`
+        };
+  
+        try {
+          let url = await s3.getSignedUrlPromise('getObject', bucketParams);
+          res.status(200).send(url);
+        } catch(err) {
+          res.status(400).send(err);
+        }
+      } else {
+        res.status(404).send('Not found')
+      }
+    }
+  });
+});
 
 app.listen(port, () => console.log(`Music server listening on port ${port}!`));
