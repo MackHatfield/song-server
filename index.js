@@ -108,6 +108,28 @@ app.get('/genres', (req, res) => {
       res.status(200).send(_.uniq(genres));
     }
   });
+});
+
+app.get('/artists/for/genre', (req, res) => {
+  const { genre } = req.query
+  
+  const dbParams = {
+    TableName: 'MusicTable',
+    IndexName: 'GenreArtistNamesIndex',
+    KeyConditionExpression: 'Genre = :hkey',
+    ExpressionAttributeValues: {
+      ':hkey': genre
+    }
+  }
+  
+  documentClient.query(dbParams, (err, data) => {
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      let artists = data.Items.map(item => item.ArtistName);
+      res.status(200).send(_.uniq(artists));
+    }
+  })
 })
 
 app.listen(port, () => console.log(`Music server listening on port ${port}!`));
