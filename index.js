@@ -8,6 +8,7 @@ const _ = require('lodash');
 AWS.config.update({region: 'us-east-1'});
 
 const s3 = new AWS.S3();
+const documentClient = new AWS.DynamoDB.DocumentClient();
 
 const bucketName = 'songuploaderbucket2983902'
 
@@ -90,5 +91,19 @@ app.get('/song', async (req, res) => {
     console.log(err, err.stack);
   }
 });
+
+app.get('/genres', (req, res) => {
+  const dbParams = {
+    TableName: 'MusicTable',
+    AttributesToGet: [
+      'Genre'
+    ]
+  };
+
+  documentClient.scan(dbParams, (err, data) => {
+    if (err) res.send(err)
+    else res.status(200).send(data)
+  });
+})
 
 app.listen(port, () => console.log(`Music server listening on port ${port}!`));
