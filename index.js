@@ -101,8 +101,12 @@ app.get('/genres', (req, res) => {
   };
 
   documentClient.scan(dbParams, (err, data) => {
-    if (err) res.send(err)
-    else res.status(200).send(data)
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      let genres = data.Items.map(item => item.Genre);
+      res.status(200).send(_.uniq(genres));
+    }
   });
 })
 
