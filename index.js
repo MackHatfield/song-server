@@ -53,6 +53,7 @@ app.get('/genres', (req, res) => {
   });
 });
 
+
 app.get('/artists/for/genre', (req, res) => {
   const { genre } = req.query
   
@@ -74,6 +75,7 @@ app.get('/artists/for/genre', (req, res) => {
     }
   });
 });
+
 
 app.get('/albums/for/artist', (req, res) => {
   const { artist } = req.query;
@@ -97,6 +99,7 @@ app.get('/albums/for/artist', (req, res) => {
   });
 });
 
+
 app.get('/songs/for/album', (req, res) => {
   const { album } = req.query;
 
@@ -117,23 +120,8 @@ app.get('/songs/for/album', (req, res) => {
       res.status(200).send(songs);
     }
   });
-})
+});
 
-// app.get('/song', async (req, res) => {
-//   const { songTitle, album, artist} = req.query;
-//   console.log(req.query)
-//   const params = {
-//     Bucket: bucketName,
-//     Key: `Artists/${artist}/${album}/${songTitle}`
-//   }
-
-//   try {
-//     let url = await s3.getSignedUrlPromise('getObject', params);
-//     res.send(url);
-//   } catch(err) {
-//     console.log(err, err.stack);
-//   }
-// });
 
 app.get('/song', (req, res) => {
   const { song } = req.query;
