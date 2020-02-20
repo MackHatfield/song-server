@@ -129,7 +129,51 @@ app.get('/artists/for/genre', (req, res) => {
       let artists = data.Items.map(item => item.ArtistName);
       res.status(200).send(_.uniq(artists));
     }
-  })
+  });
+});
+
+app.get('/albums/for/artist', (req, res) => {
+  const { artist } = req.query;
+
+  const dbParams = {
+    TableName: 'MusicTable',
+    IndexName: 'ArtistNameAlbumTitlesIndex',
+    KeyConditionExpression: 'ArtistName = :hkey',
+    ExpressionAttributeValues: {
+      ':hkey': artist
+    }
+  }
+
+  documentClient.query(dbParams, (err, data) => {
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      let albums = data.Items.map(item => item.AlbumTitle);
+      res.status(200).send(_.uniq(albums));
+    }
+  });
+});
+
+app.get('/songs/for/album', (req, res) => {
+  const { album } = req.query;
+
+  const dbParams = {
+    TableName: 'MusicTable',
+    IndexName: 'AlbumTitleSongTitlesIndex',
+    KeyConditionExpression: 'AlbumTitle = :hkey',
+    ExpressionAttributeValues: {
+      ':hkey': album
+    }
+  };
+
+  documentClient.query(dbParams, (err, data) => {
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      let songs = data.Items.map(item => item.SongTitle);
+      res.status(200).send(songs);
+    }
+  });
 })
 
 app.listen(port, () => console.log(`Music server listening on port ${port}!`));
