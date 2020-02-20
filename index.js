@@ -17,80 +17,79 @@ app.use(cors());
 app.get('/', (req, res) => res.send('Fake Spotify Like App'));
 
 app.get('/artists', (req, res) => {
-  const params = {
-    Bucket: bucketName
-  };
-  s3.listObjects(params, (err, data) => {
-    if (err) console.log(err, err.stack); // an error occurred
-    else {
-      const itemList = data.Contents;
-      let artists = itemList.map(item => {
-        let artistName = item.Key.split('/')[1]
-        return artistName;
-      });
-      
-      const uniqueArtists = _.uniq(artists);
-      res.send(uniqueArtists)
-    }
-  });
-});
-
-app.get('/albums', (req, res) => {
-  const { artist } = req.query;
-  const params = {
-    Bucket: bucketName,
-    Prefix: `Artists/${artist}`
+  const dbParams = {
+    TableName: 'MusicTable',
+    AttributesToGet: [
+      'ArtistName'
+    ]
   };
 
-  s3.listObjects(params, (err, data) => {
-    if (err) console.log(err, err.stack);
-    else {
-      const itemList = data.Contents;
-
-      const artistAlbums = itemList.map(item => {
-        return item.Key.split('/')[2]
-      });
-      res.send(_.uniq(artistAlbums));
-    }
-  });
-});
-
-app.get('/songs', (req, res) => {
-  const { artist, album } = req.query;
-  const params = {
-    Bucket: bucketName,
-    Prefix: `Artists/${artist}/${album}`
-  };
-
-  s3.listObjects(params, (err, data) => {
+  documentClient.scan(dbParams, (err, data) => {
     if (err) {
-      console.log(err, err.stack);
+      res.status(400).send(err);
     } else {
-      const itemList = data.Contents;
-
-      const albumSongs = itemList.map(item => {
-        return item.Key.split('/')[3]
-      });
-      res.send(_.uniq(albumSongs));
+      let artists = data.Items.map(item => item.ArtistName);
+      res.status(200).send(_.uniq(artists));
     }
   });
 });
 
-app.get('/song', async (req, res) => {
-  const { songTitle, album, artist} = req.query;
-  console.log(req.query)
-  const params = {
-    Bucket: bucketName,
-    Key: `Artists/${artist}/${album}/${songTitle}`
-  }
+// app.get('/albums', (req, res) => {
+//   const { artist } = req.query;
+//   const params = {
+//     Bucket: bucketName,
+//     Prefix: `Artists/${artist}`
+//   };
 
-  try {
-    let url = await s3.getSignedUrlPromise('getObject', params);
-    res.send(url);
-  } catch(err) {
-    console.log(err, err.stack);
-  }
-});
+//   s3.listObjects(params, (err, data) => {
+//     if (err) console.log(err, err.stack);
+//     else {
+//       const itemList = data.Contents;
+
+//       const artistAlbums = itemList.map(item => {
+//         return item.Key.split('/')[2]
+//       });
+//       res.send(_.uniq(artistAlbums));
+//     }
+//   });
+// });
+
+// app.get('/songs', (req, res) => {
+//   const { artist, album } = req.query;
+//   const params = {
+//     Bucket: bucketName,
+//     Prefix: `Artists/${artist}/${album}`
+//   };
+
+//   s3.listObjects(params, (err, data) => {
+//     if (err) {
+//       console.log(err, err.stack);
+//     } else {
+//       const itemList = data.Contents;
+
+//       const albumSongs = itemList.map(item => {
+//         return item.Key.split('/')[3]
+//       });
+//       res.send(_.uniq(albumSongs));
+//     }
+//   });
+// });
+
+// app.get('/song', async (req, res) => {
+//   const { songTitle, album, artist} = req.query;
+//   console.log(req.query)
+//   const params = {
+//     Bucket: bucketName,
+//     Key: `Artists/${artist}/${album}/${songTitle}`
+//   }
+
+//   try {
+//     let url = await s3.getSignedUrlPromise('getObject', params);
+//     res.send(url);
+//   } catch(err) {
+//     console.log(err, err.stack);
+//   }
+// });
 
 app.get('/genres', (req, res) => {
   const dbParams = {
