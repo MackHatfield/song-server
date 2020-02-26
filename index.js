@@ -160,4 +160,25 @@ app.get('/song', (req, res) => {
   });
 });
 
+app.post('/save-user', (req, res) => {
+  const { id, name, email } = req.query;
+
+  const dbParams = {
+    TableName: 'Users',
+    Item: {
+      ID: id,
+      Name: name,
+      Email: email
+    }
+  };
+
+  documentClient.put(dbParams, (err, data) => {
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      res.status(201).send(data);
+    }
+  });
+});
+
 app.listen(port, () => console.log(`Music server listening on port ${port}!`));
